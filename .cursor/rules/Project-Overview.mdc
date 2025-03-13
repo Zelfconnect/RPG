@@ -1,0 +1,15 @@
+---
+description:  Personal Growth OS Project Overview
+globs: 
+alwaysApply: false
+---
+de
+globs: "*.{js,jsx,ts,tsx}"
+---
+# Personal Growth OS Context
+- This is a narrative-driven personal development tracking system that gamifies personal growth using RPG elements
+- The app operates on a monthly cycle requiring ~45 minutes per month
+- Key features include character creation, skill trees, quest system, and narrative elements
+- Follow a component-based architecture with Firebase backend
+@file Instructions/prd.md
+@file Instructions/tech-stack.md
