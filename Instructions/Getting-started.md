@@ -53,8 +53,8 @@ Follow these steps to set up your development environment:
 If you've already created the repository structure from our instructions:
 
 ```bash
-git clone [your-repository-url]
-cd PersonalGrowthOS
+git clone https://github.com/Zelfconnect/RPG.git
+cd RPG
 ```
 
 ### 3. Set Up Firebase
@@ -81,12 +81,12 @@ cd PersonalGrowthOS
    - Register your app with a nickname (e.g., "personal-growth-os")
    - Copy the firebaseConfig object for the next step
 
-### 4. Create React App
+### 4. Create React App with TypeScript
 
-Create the React application using Create React App:
+Create the React application using Create React App with TypeScript:
 
 ```bash
-npx create-react-app personal-growth-os
+npx create-react-app personal-growth-os --template typescript
 cd personal-growth-os
 ```
 
@@ -95,11 +95,40 @@ cd personal-growth-os
 Install the required dependencies:
 
 ```bash
-npm install firebase react-router-dom tailwindcss framer-motion
+npm install firebase react-router-dom tailwindcss framer-motion @craco/craco
 npm install -D postcss autoprefixer
+npm install workbox-webpack-plugin workbox-core workbox-routing workbox-strategies workbox-precaching
 ```
 
-### 6. Set Up Tailwind CSS
+### 6. Set Up CRACO
+
+Create a `craco.config.js` file in the project root:
+
+```javascript
+module.exports = {
+  style: {
+    postcss: {
+      plugins: [
+        require('tailwindcss'),
+        require('autoprefixer'),
+      ],
+    },
+  },
+};
+```
+
+Update the scripts in `package.json`:
+
+```json
+"scripts": {
+  "start": "craco start",
+  "build": "craco build",
+  "test": "craco test",
+  "eject": "react-scripts eject"
+}
+```
+
+### 7. Set Up Tailwind CSS
 
 Initialize Tailwind:
 
@@ -139,7 +168,7 @@ module.exports = {
 }
 ```
 
-### 7. Configure Firebase
+### 8. Configure Firebase
 
 Create a `.env.local` file in the project root:
 
@@ -157,17 +186,18 @@ Replace the placeholders with your Firebase config values.
 Then, create a Firebase configuration file:
 
 ```bash
-mkdir -p src/firebase
-touch src/firebase/config.js
+mkdir -p src/services
+touch src/services/firebase.ts
 ```
 
-Add the following to `src/firebase/config.js`:
+Add the following to `src/services/firebase.ts`:
 
-```javascript
+```typescript
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -175,21 +205,64 @@ const firebaseConfig = {
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Get Firebase services
-export const db = getFirestore(app);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 export const storage = getStorage(app);
+export const analytics = getAnalytics(app);
+
+// Collection references
+export const usersCollection = collection(db, 'users');
+export const questsCollection = collection(db, 'quests');
+export const achievementsCollection = collection(db, 'achievements');
+
+// Helper functions
+export const createUserDocument = async (user: User, additionalData = {}) => {
+  if (!user) return;
+
+  const userRef = doc(usersCollection, user.uid);
+  const snapshot = await getDoc(userRef);
+
+  if (!snapshot.exists()) {
+    const { email } = user;
+    const createdAt = Timestamp.now();
+
+    try {
+      await setDoc(userRef, {
+        email,
+        createdAt,
+        ...additionalData,
+      });
+    } catch (error) {
+      console.error('Error creating user document', error);
+    }
+  }
+
+  return userRef;
+};
+
+export const getCurrentUser = (): Promise<User | null> => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        unsubscribe();
+        resolve(user);
+      },
+      reject
+    );
+  });
+};
 
 export default app;
 ```
 
-### 8. Add CSS Reset and Base Styles
+### 9. Add CSS Reset and Base Styles
 
 Update `src/index.css`:
 
@@ -205,24 +278,363 @@ body {
 /* Additional global styles */
 ```
 
-### 9. Update Project Structure
+### 10. Create Project Structure
 
 Create the recommended folder structure:
 
 ```bash
-mkdir -p src/components/atoms src/components/molecules src/components/organisms
-mkdir -p src/context
-mkdir -p src/features/authentication src/features/character src/features/quests src/features/skills src/features/monthly-cycle
-mkdir -p src/hooks
+mkdir -p src/components
+mkdir -p src/contexts
 mkdir -p src/pages
 mkdir -p src/services
 mkdir -p src/utils
+mkdir -p src/hooks
+mkdir -p src/types
+mkdir -p src/assets
 ```
 
-### 10. Start the Development Server
+### 11. Implement Authentication Context
+
+Create a file for the authentication context:
+
+```bash
+touch src/contexts/AuthContext.tsx
+```
+
+Add the authentication context implementation (refer to the current implementation in the codebase).
+
+### 12. Create Basic Pages
+
+Create files for the basic pages:
+
+```bash
+mkdir -p src/pages
+touch src/pages/Login.tsx
+touch src/pages/Register.tsx
+touch src/pages/Dashboard.tsx
+```
+
+Implement these pages according to the designs in app-flow.md.
+
+### 13. Set Up Protected Routes
+
+Create a file for the protected route component:
+
+```bash
+touch src/components/PrivateRoute.tsx
+```
+
+Implement the protected route component to secure authenticated routes.
+
+### 14. Update App.tsx
+
+Update the App.tsx file to include routing and the authentication provider.
+
+### 15. Start the Development Server
 
 ```bash
 npm start
+```
+
+### 12. PWA Configuration
+
+#### Set up the Web App Manifest
+
+Create a new file or update the existing `public/manifest.json`:
+
+```json
+{
+  "short_name": "Growth OS",
+  "name": "Personal Growth OS",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#5E35B1",
+  "background_color": "#ffffff",
+  "orientation": "portrait"
+}
+```
+
+#### Configure Service Worker
+
+Create a custom service worker in `src/service-worker.ts`:
+
+```typescript
+/// <reference lib="webworker" />
+
+import { clientsClaim } from 'workbox-core';
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate, CacheFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+
+declare const self: ServiceWorkerGlobalScope;
+
+clientsClaim();
+
+// Precache all of the assets generated by your build process
+precacheAndRoute(self.__WB_MANIFEST);
+
+// Cache the Firebase authentication and Firestore data
+registerRoute(
+  ({ url }) => url.origin === 'https://firebasestorage.googleapis.com',
+  new StaleWhileRevalidate({
+    cacheName: 'firebase-storage-cache',
+  })
+);
+
+// Cache Google Fonts stylesheets
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.googleapis.com',
+  new StaleWhileRevalidate({
+    cacheName: 'google-fonts-stylesheets',
+  })
+);
+
+// Cache Google Fonts webfont files
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.gstatic.com',
+  new CacheFirst({
+    cacheName: 'google-fonts-webfonts',
+    plugins: [
+      new ExpirationPlugin({
+        maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+        maxEntries: 30,
+      }),
+    ],
+  })
+);
+
+// Handle offline fallbacks
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  async ({ event }) => {
+    try {
+      // Try to fetch the latest version
+      return await fetch(event.request as Request);
+    } catch (error) {
+      // If offline, show offline page
+      return caches.match('/offline.html');
+    }
+  }
+);
+
+// This allows the web app to trigger skipWaiting via
+// registration.waiting.postMessage({type: 'SKIP_WAITING'})
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+```
+
+Create a simple offline page at `public/offline.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Personal Growth OS</title>
+  <style>
+    body {
+      font-family: 'Lato', sans-serif;
+      background-color: #f9fafb;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #5E35B1;
+      font-family: 'Cinzel', serif;
+      margin-bottom: 1rem;
+    }
+    p {
+      max-width: 500px;
+      line-height: 1.6;
+    }
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>You're Currently Offline</h1>
+  <div class="card">
+    <p>Personal Growth OS needs an internet connection to sync your progress.</p>
+    <p>Please check your connection and try again.</p>
+    <p>Don't worry - any changes you've made while online are safely stored.</p>
+  </div>
+</body>
+</html>
+```
+
+Update `src/index.tsx` to register the service worker:
+
+```typescript
+// Add this to the imports
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+
+// Add this after the ReactDOM.render call
+serviceWorkerRegistration.register();
+```
+
+Create `src/serviceWorkerRegistration.ts`:
+
+```typescript
+const isLocalhost = Boolean(
+  window.location.hostname === 'localhost' ||
+    window.location.hostname === '[::1]' ||
+    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+);
+
+type Config = {
+  onSuccess?: (registration: ServiceWorkerRegistration) => void;
+  onUpdate?: (registration: ServiceWorkerRegistration) => void;
+};
+
+export function register(config?: Config) {
+  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+    const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
+    if (publicUrl.origin !== window.location.origin) {
+      return;
+    }
+
+    window.addEventListener('load', () => {
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+
+      if (isLocalhost) {
+        checkValidServiceWorker(swUrl, config);
+        navigator.serviceWorker.ready.then(() => {
+          console.log('This web app is being served cache-first by a service worker.');
+        });
+      } else {
+        registerValidSW(swUrl, config);
+      }
+    });
+  }
+}
+
+function registerValidSW(swUrl: string, config?: Config) {
+  navigator.serviceWorker
+    .register(swUrl)
+    .then((registration) => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker == null) {
+          return;
+        }
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed') {
+            if (navigator.serviceWorker.controller) {
+              console.log('New content is available and will be used when all tabs for this page are closed.');
+              if (config && config.onUpdate) {
+                config.onUpdate(registration);
+              }
+            } else {
+              console.log('Content is cached for offline use.');
+              if (config && config.onSuccess) {
+                config.onSuccess(registration);
+              }
+            }
+          }
+        };
+      };
+    })
+    .catch((error) => {
+      console.error('Error during service worker registration:', error);
+    });
+}
+
+function checkValidServiceWorker(swUrl: string, config?: Config) {
+  fetch(swUrl, {
+    headers: { 'Service-Worker': 'script' },
+  })
+    .then((response) => {
+      const contentType = response.headers.get('content-type');
+      if (
+        response.status === 404 ||
+        (contentType != null && contentType.indexOf('javascript') === -1)
+      ) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.unregister().then(() => {
+            window.location.reload();
+          });
+        });
+      } else {
+        registerValidSW(swUrl, config);
+      }
+    })
+    .catch(() => {
+      console.log('No internet connection found. App is running in offline mode.');
+    });
+}
+
+export function unregister() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready
+      .then((registration) => {
+        registration.unregister();
+      })
+      .catch((error) => {
+        console.error(error.message);
+      });
+  }
+}
+```
+
+## Important Note on Command Execution
+
+When working with this project, it's crucial to run commands in the correct directory:
+
+- All npm commands should be run from the `personal-growth-os` directory
+- Git commands should be run from the root `RPG` directory
+
+**Correct examples:**
+```bash
+# For npm commands
+cd personal-growth-os
+npm start
+
+# For git commands
+cd ..  # if you're in personal-growth-os
+git add .
+git commit -m "Your message"
+```
+
+**Incorrect examples:**
+```bash
+# Running npm commands from the wrong directory
+cd RPG  # root directory
+npm start  # This will fail
 ```
 
 ## Development Workflow
@@ -249,117 +661,93 @@ Following the backend-structure.md guidance, implement basic Firebase services:
 
 ### 3. Build Features in Phases
 
-Follow the phased approach from the tech-stack.md file:
+Follow the phased approach from the project-status.md file:
 
-1. **Phase 1**: Authentication and user profile
-2. **Phase 2**: Character creation flow
-3. **Phase 3**: Core dashboard
-4. **Phase 4**: Quest system
-5. **Phase 5**: Skill tree
-6. **Phase 6**: Monthly cycle
-7. **Phase 7**: Polish and deployment
+1. **Phase 1: Project Setup & Authentication** (Completed)
+2. **Phase 2: Streamlined Character Creation System** (Next Phase)
+   - Implement Future Self Snapshot for quick onboarding
+   - Set up character development quest framework
+   - Create progressive character deepening flow
+3. **Phase 3: Core Dashboard**
+4. **Phase 4: Quest System**
+5. **Phase 5: Skill Tree & Stats**
+6. **Phase 6: Monthly Cycle**
+7. **Phase 7: Polish & Deployment**
+   - This includes responsive PWA implementation for all device types
 
-For each phase:
-- Reference the relevant sections of the instruction files
-- Use Cursor AI to help implement the features
-- Update project-status.md to track progress
+### 4. Streamlined Character Creation Implementation
 
-### 4. Using Cursor AI for Implementation
+The character creation system follows a tiered approach with dual assessment:
 
-When using Cursor AI to help implement features:
+1. **Essential Tier - Current State Assessment**:
+   - Initial 5-7 minute assessment
+   - Current situation description
+   - Key strengths identification
+   - Current challenges assessment
+   - Self-rating on attributes (0-10 scale)
+   - Activity frequency measurement
 
-- Be specific about which file you're referencing
-- Provide context about where the code fits in the architecture
-- Ask for step-by-step explanations if needed
+2. **Essential Tier - Future Self Snapshot**:
+   - Quick 5-7 minute future vision
+   - Focus on desired future state
+   - Key habit identification
+   - One major goal
+   - Attribute calculation based on both current and future state
 
-Example prompt:
-```
-I want to implement the character creation flow described in app-flow.md.
-Specifically, I need the "Origin Story Creator" component following the component
-structure in frontend-guidelines.md and connecting to Firebase as outlined in
-backend-structure.md.
-```
+3. **Progressive Tier (Character Development Quests)**:
+   - Origin story quest
+   - Deeper character development
+   - Unlocked gradually during normal gameplay
 
-### 5. Track Progress
+4. **Ongoing Tier (Monthly Review Deepening)**:
+   - Monthly reflection questions
+   - Character evolution visualization
+   - Progressive narrative building
 
-Use the project-status.md file to:
-- Document completed features
-- Track current progress
-- Identify next steps
-- Note any challenges or decisions
+This dual assessment approach ensures users establish an accurate starting point while maintaining a clear growth direction.
 
-Update this file regularly as you complete features.
+### 5. Testing Your Implementation
 
-## Testing Your Implementation
+- Test authentication flow
+- Verify Firebase connectivity
+- Check that data is properly stored in Firestore
+- Ensure protected routes work as expected
 
-Follow these steps to test your application:
+## Current Project Status
 
-1. **Component Testing**
-   - Verify components render correctly
-   - Check that user interactions work as expected
-   - Test responsive behavior
+As of March 2025, we have completed Phase 1 (Project Setup & Authentication):
+- ✅ React application with TypeScript
+- ✅ Tailwind CSS configuration
+- ✅ Firebase setup with Authentication, Firestore, and Analytics
+- ✅ Basic authentication flow (register, login, logout)
+- ✅ Protected routes
+- ✅ Basic dashboard
 
-2. **Feature Testing**
-   - Test the complete user flows
-   - Verify data is saved to Firebase
-   - Check that data is retrieved and displayed correctly
+The next phase will focus on implementing the Streamlined Character Creation System.
 
-3. **Cross-Browser Testing**
-   - Test in Chrome, Firefox, and Safari
-   - Verify mobile responsiveness
+## Troubleshooting
 
-## Deployment
+### Firebase Connection Issues
 
-When you're ready to deploy your application:
+If you encounter issues with Firebase connectivity:
+1. Verify that your `.env.local` file contains the correct Firebase configuration values
+2. Check that you've enabled the necessary Firebase services (Authentication, Firestore)
+3. Make sure you've installed the Firebase package (`npm install firebase`)
+4. Check the browser console for specific error messages
 
-1. **Build the Production Version**
-   ```bash
-   npm run build
-   ```
+### Command Execution Problems
 
-2. **Install Firebase CLI**
-   ```bash
-   npm install -g firebase-tools
-   ```
-
-3. **Initialize Firebase Hosting**
-   ```bash
-   firebase login
-   firebase init hosting
-   ```
-   - Select your Firebase project
-   - Set "build" as your public directory
-   - Configure as a single-page app
-   - Don't overwrite build/index.html
-
-4. **Deploy**
-   ```bash
-   firebase deploy
-   ```
-
-## Need Help?
-
-If you get stuck:
-
-1. Refer back to the instruction files for guidance
-2. Use Cursor AI to help debug issues
-3. Review the Firebase documentation for specific Firebase features
-4. Check the React documentation for component patterns
-
-Remember that the instruction files are designed to work together as a comprehensive guide. If you're having trouble with a specific feature, review the relevant sections across multiple files to get the complete picture.
+If you encounter issues with npm commands:
+1. Make sure you're in the correct directory (`personal-growth-os`)
+2. Check that you have Node.js and npm installed
+3. Verify that all dependencies are installed (`npm install`)
 
 ## Next Steps
 
-After completing the basic implementation, consider:
+1. Implement the Streamlined Character Creation flow
+2. Set up responsive PWA configuration
+3. Create the Quest system
+4. Develop the Skill Tree visualization
+5. Implement the Monthly Cycle features
 
-1. Adding unit tests
-2. Implementing additional features from the PRD
-3. Enhancing the UI with more animations
-4. Adding offline support
-5. Implementing analytics to track user engagement
-
-## Conclusion
-
-The Personal Growth OS project is designed to be approachable for beginners while still creating a sophisticated application. By following this guide and referencing the instruction files, you should be able to implement a functional, engaging personal development application.
-
-Remember that the instruction files are not just documentation - they're active development tools to guide you through the implementation process. Refer to them regularly as you build each feature.
+For detailed information on these features, refer to the PRD and app-flow documents.

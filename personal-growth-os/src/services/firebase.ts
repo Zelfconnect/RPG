@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -10,6 +11,7 @@ const firebaseConfig = {
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -17,6 +19,25 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Initialize Analytics conditionally
+export let analytics: Analytics | null = null;
+// Only initialize analytics in production or if explicitly enabled
+if (process.env.NODE_ENV === 'production' || process.env.REACT_APP_ENABLE_ANALYTICS === 'true') {
+  // Check if analytics is supported before initializing
+  isSupported().then(supported => {
+    if (supported) {
+      analytics = getAnalytics(app);
+      console.log('Firebase Analytics initialized');
+    } else {
+      console.log('Firebase Analytics not supported in this environment');
+    }
+  }).catch(error => {
+    console.error('Error checking Analytics support:', error);
+  });
+} else {
+  console.log('Firebase Analytics disabled in development mode');
+}
 
 // Collection references
 export const usersCollection = collection(db, 'users');

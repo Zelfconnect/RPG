@@ -138,43 +138,100 @@ export const getCharacterData = async (userId: string): Promise<CharacterData | 
     
     if (userSnap.exists()) {
       const userData = userSnap.data() as UserProfile;
-      let futureVision = { description: '', keyHabits: [], majorGoal: '' };
-      let currentState = { description: '', strengths: [], challenges: [] };
+      
+      // Initialize with the correct types
+      const defaultFutureVision: CharacterData['futureVision'] = { 
+        description: '', 
+        keyHabits: [], 
+        majorGoal: '' 
+      };
+      
+      const defaultCurrentState: CharacterData['currentState'] = { 
+        description: '', 
+        strengths: [], 
+        challenges: [] 
+      };
+      
+      let futureVision = { ...defaultFutureVision };
+      let currentState = { ...defaultCurrentState };
       let growthAreas = {};
       
-      // Try to parse futureVision if it exists
+      // Handle futureVision which could be a string or an object
       if (userData.futureVision) {
-        try {
-          futureVision = JSON.parse(userData.futureVision as string);
-        } catch (e) {
-          // If futureVision isn't valid JSON, use it as the description
-          futureVision = { 
-            description: userData.futureVision as string, 
-            keyHabits: [], 
-            majorGoal: '' 
+        if (typeof userData.futureVision === 'string') {
+          // If it's a string, try to parse it as JSON
+          try {
+            const parsed = JSON.parse(userData.futureVision);
+            futureVision = {
+              description: parsed.description || '',
+              keyHabits: Array.isArray(parsed.keyHabits) ? parsed.keyHabits : [],
+              majorGoal: parsed.majorGoal || ''
+            };
+          } catch (e) {
+            // If parsing fails, use it as description
+            futureVision = { 
+              ...defaultFutureVision,
+              description: userData.futureVision
+            };
+          }
+        } else if (typeof userData.futureVision === 'object') {
+          // If it's already an object, ensure it has the right shape
+          const fv = userData.futureVision as any;
+          futureVision = {
+            description: fv.description || '',
+            keyHabits: Array.isArray(fv.keyHabits) ? fv.keyHabits : [],
+            majorGoal: fv.majorGoal || ''
           };
         }
       }
       
-      // Try to parse currentState if it exists
+      // Handle currentState which could be a string or an object
       if (userData.currentState) {
-        try {
-          currentState = JSON.parse(userData.currentState as string);
-        } catch (e) {
-          currentState = { 
-            description: userData.currentState as string, 
-            strengths: [], 
-            challenges: [] 
+        if (typeof userData.currentState === 'string') {
+          // If it's a string, try to parse it as JSON
+          try {
+            const parsed = JSON.parse(userData.currentState);
+            currentState = {
+              description: parsed.description || '',
+              strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+              challenges: Array.isArray(parsed.challenges) ? parsed.challenges : [],
+              // Handle optional properties if they exist
+              selfRatings: parsed.selfRatings,
+              activityFrequency: parsed.activityFrequency
+            };
+          } catch (e) {
+            // If parsing fails, use it as description
+            currentState = {
+              ...defaultCurrentState,
+              description: userData.currentState
+            };
+          }
+        } else if (typeof userData.currentState === 'object') {
+          // If it's already an object, ensure it has the right shape
+          const cs = userData.currentState as any;
+          currentState = {
+            description: cs.description || '',
+            strengths: Array.isArray(cs.strengths) ? cs.strengths : [],
+            challenges: Array.isArray(cs.challenges) ? cs.challenges : [],
+            // Handle optional properties if they exist
+            selfRatings: cs.selfRatings,
+            activityFrequency: cs.activityFrequency
           };
         }
       }
       
-      // Try to parse growthAreas if it exists
+      // Handle growthAreas which could be a string or an object
       if (userData.growthAreas) {
-        try {
-          growthAreas = JSON.parse(userData.growthAreas as string);
-        } catch (e) {
-          growthAreas = {};
+        if (typeof userData.growthAreas === 'string') {
+          // If it's a string, try to parse it as JSON
+          try {
+            growthAreas = JSON.parse(userData.growthAreas);
+          } catch (e) {
+            growthAreas = {};
+          }
+        } else if (typeof userData.growthAreas === 'object') {
+          // If it's already an object, use it directly
+          growthAreas = userData.growthAreas;
         }
       }
       

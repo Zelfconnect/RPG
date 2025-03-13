@@ -89,23 +89,23 @@ const CharacterSummary: React.FC<CharacterSummaryProps> = ({
   onBack,
 }) => {
   const { currentUser } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState<CharacterData['currentStats']>();
 
   useEffect(() => {
     // Fetch the latest stats from the user profile
     const fetchStats = async () => {
       if (currentUser) {
         try {
-          setIsLoading(true);
-          const userProfile = await getUserProfile(currentUser.uid);
-          if (userProfile) {
-            setStats(userProfile.stats);
-          }
+          // No need to set loading state if we're not using it
+          // setIsLoading(true);
+          // No need to fetch and store stats if we're not using them
+          // const userProfile = await getUserProfile(currentUser.uid);
+          // if (userProfile) {
+          //   setStats(userProfile.stats);
+          // }
         } catch (error) {
           console.error('Error fetching user stats:', error);
         } finally {
-          setIsLoading(false);
+          // setIsLoading(false);
         }
       }
     };
@@ -113,22 +113,21 @@ const CharacterSummary: React.FC<CharacterSummaryProps> = ({
     fetchStats();
   }, [currentUser]);
 
-  // This ensures we handle cases where futureVision might be undefined
-  const futureVision = characterData.futureVision || {
+  // Safely ensure we have all required objects with defensive programming
+  // This ensures we handle cases where properties might be undefined
+  const futureVision = characterData?.futureVision || {
     description: '',
     keyHabits: [],
     majorGoal: '',
   };
 
-  // This ensures we handle cases where currentState might be undefined
-  const currentState = characterData.currentState || {
+  const currentState = characterData?.currentState || {
     description: '',
     strengths: [],
     challenges: [],
   };
 
-  // This ensures we handle cases where currentStats might be undefined
-  const statsData = characterData.currentStats || {
+  const statsData = characterData?.currentStats || {
     strength: 1,
     intelligence: 1,
     creativity: 1,
@@ -138,7 +137,7 @@ const CharacterSummary: React.FC<CharacterSummaryProps> = ({
   };
 
   // Get growth areas if available
-  const growthAreas = characterData.growthAreas || {};
+  const growthAreas = characterData?.growthAreas || {};
 
   // Function to get a color class based on stat value (updated for 0-10 scale)
   const getStatColorClass = (value: number) => {
@@ -149,87 +148,104 @@ const CharacterSummary: React.FC<CharacterSummaryProps> = ({
     return 'bg-purple-500';
   };
 
+  // Return null or a loading state if characterData is null or undefined
+  if (!characterData) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-500">Loading character data...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-primary mb-6">Character Summary</h2>
+    <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-primary mb-4">Character Summary</h2>
       
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-2">Your Character Overview</h3>
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-3">Your Character Overview</h3>
         <p className="text-gray-600 mb-4">
           Based on your current state and your vision for the future, here's how your character looks.
         </p>
         
-        <div className="mb-6">
-          <h4 className="font-semibold text-gray-700 mb-2">Current State</h4>
-          <p className="text-gray-600">{currentState.description}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h4 className="font-semibold text-gray-700 mb-2">Current State</h4>
+            <p className="text-gray-600 mb-3">{currentState.description}</p>
+            
+            {Array.isArray(currentState.strengths) && currentState.strengths.length > 0 && (
+              <div className="mb-3">
+                <h5 className="font-medium text-gray-600 mb-1">Current Strengths:</h5>
+                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                  {currentState.strengths.map((strength, index) => (
+                    <li key={`strength-${index}`}>{strength}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {Array.isArray(currentState.challenges) && currentState.challenges.length > 0 && (
+              <div>
+                <h5 className="font-medium text-gray-600 mb-1">Current Challenges:</h5>
+                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                  {currentState.challenges.map((challenge, index) => (
+                    <li key={`challenge-${index}`}>{challenge}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
           
-          {currentState.strengths.length > 0 && (
-            <div className="mt-2">
-              <h5 className="font-medium text-gray-600">Current Strengths:</h5>
-              <ul className="list-disc list-inside text-gray-600 ml-2">
-                {currentState.strengths.map((strength, index) => (
-                  <li key={`strength-${index}`}>{strength}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {currentState.challenges.length > 0 && (
-            <div className="mt-2">
-              <h5 className="font-medium text-gray-600">Current Challenges:</h5>
-              <ul className="list-disc list-inside text-gray-600 ml-2">
-                {currentState.challenges.map((challenge, index) => (
-                  <li key={`challenge-${index}`}>{challenge}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-        
-        <div className="mb-6">
-          <h4 className="font-semibold text-gray-700 mb-2">Future Vision</h4>
-          <p className="text-gray-600">{futureVision.description}</p>
-          
-          {futureVision.keyHabits.length > 0 && (
-            <div className="mt-2">
-              <h5 className="font-medium text-gray-600">Key Habits:</h5>
-              <ul className="list-disc list-inside text-gray-600 ml-2">
-                {futureVision.keyHabits.map((habit, index) => (
-                  <li key={`habit-${index}`}>{habit}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {futureVision.majorGoal && (
-            <div className="mt-2">
-              <h5 className="font-medium text-gray-600">Major Goal:</h5>
-              <p className="text-gray-600 ml-2">{futureVision.majorGoal}</p>
-            </div>
-          )}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h4 className="font-semibold text-gray-700 mb-2">Future Vision</h4>
+            <p className="text-gray-600 mb-3">{futureVision.description}</p>
+            
+            {Array.isArray(futureVision.keyHabits) && futureVision.keyHabits.length > 0 && (
+              <div className="mb-3">
+                <h5 className="font-medium text-gray-600 mb-1">Key Habits:</h5>
+                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                  {futureVision.keyHabits.map((habit, index) => (
+                    <li key={`habit-${index}`}>{habit}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {futureVision.majorGoal && (
+              <div>
+                <h5 className="font-medium text-gray-600 mb-1">Major Goal:</h5>
+                <p className="text-gray-600">{futureVision.majorGoal}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">Your Attributes</h3>
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-3">Your Attributes</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(statsData).map(([stat, value]) => {
+          {Object.entries(statsData || {}).map(([stat, value]) => {
             const statKey = stat as keyof UserProfile['stats'];
-            const growthArea = growthAreas[statKey];
+            const growthArea = (growthAreas || {})[statKey];
+            
+            // Ensure value is a number
+            const numericValue = typeof value === 'number' ? value : 1;
+            
+            // Use the getStatColorClass function to apply the appropriate color
+            const colorClass = getStatColorClass(numericValue);
             
             return (
-              <div key={stat} className="bg-gray-50 p-4 rounded-lg">
+              <div key={stat} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <div className="flex justify-between items-center mb-2">
                   <h4 className="font-semibold">{formatAttributeName(stat)}</h4>
-                  <span className="text-lg font-bold text-primary">{value}</span>
+                  <span className="text-lg font-bold text-primary">{numericValue}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
                   <div
-                    className="bg-primary h-2.5 rounded-full"
-                    style={{ width: `${(value / 10) * 100}%` }}
+                    className={`${colorClass} h-2.5 rounded-full`}
+                    style={{ width: `${(numericValue / 10) * 100}%` }}
                   ></div>
                 </div>
-                <p className="text-sm text-gray-600 mb-1">{getStatDescription(stat, value)}</p>
+                <p className="text-sm text-gray-600 mb-1">{getStatDescription(stat, numericValue)}</p>
                 
                 {growthArea && (
                   <div className="mt-2 text-xs">
@@ -244,18 +260,18 @@ const CharacterSummary: React.FC<CharacterSummaryProps> = ({
         </div>
       </div>
       
-      <div className="mt-8">
+      <div className="pt-4 border-t border-gray-200">
         <p className="text-gray-600 mb-4">
           This is your starting point. As you complete quests and develop habits, your character will grow and
           evolve. Your future vision will guide your journey, but remember that growth is not linear - embrace the
           challenges as opportunities to level up your character.
         </p>
         
-        <div className="flex justify-between">
+        <div className="flex justify-end pt-6">
           {onBack && (
             <button
               onClick={onBack}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mr-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
             >
               Back
             </button>

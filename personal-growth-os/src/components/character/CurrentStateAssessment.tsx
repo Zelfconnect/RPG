@@ -42,31 +42,47 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
   initialData 
 }) => {
   const [description, setDescription] = useState(initialData?.description || '');
-  const [strengths, setStrengths] = useState<string[]>(initialData?.strengths || ['']);
-  const [challenges, setChallenges] = useState<string[]>(initialData?.challenges || ['']);
+  const [strengths, setStrengths] = useState<string[]>(
+    Array.isArray(initialData?.strengths) && initialData.strengths.length > 0 
+      ? initialData.strengths 
+      : ['']
+  );
+  const [challenges, setChallenges] = useState<string[]>(
+    Array.isArray(initialData?.challenges) && initialData.challenges.length > 0 
+      ? initialData.challenges 
+      : ['']
+  );
   
   // Initialize self-ratings with default moderate values or from initialData
+  const defaultSelfRatings = {
+    strength: 5,
+    intelligence: 5,
+    creativity: 5,
+    discipline: 5,
+    vitality: 5,
+    social: 5
+  };
+  
   const [selfRatings, setSelfRatings] = useState<Record<string, number>>(
-    initialData?.selfRatings || {
-      strength: 5,
-      intelligence: 5,
-      creativity: 5,
-      discipline: 5,
-      vitality: 5,
-      social: 5
-    }
+    initialData?.selfRatings && typeof initialData.selfRatings === 'object' 
+      ? { ...defaultSelfRatings, ...initialData.selfRatings }
+      : defaultSelfRatings
   );
   
   // Initialize activity frequency with defaults or from initialData
+  const defaultActivityFrequency = {
+    physical: 'weekly',
+    mental: 'weekly',
+    creative: 'weekly',
+    routine: 'weekly',
+    wellness: 'weekly',
+    social: 'weekly'
+  };
+  
   const [activityFrequency, setActivityFrequency] = useState<Record<string, string>>(
-    initialData?.activityFrequency || {
-      physical: 'weekly',
-      mental: 'weekly',
-      creative: 'weekly',
-      routine: 'weekly',
-      wellness: 'weekly',
-      social: 'weekly'
-    }
+    initialData?.activityFrequency && typeof initialData.activityFrequency === 'object' 
+      ? { ...defaultActivityFrequency, ...initialData.activityFrequency }
+      : defaultActivityFrequency
   );
   
   const handleAddStrength = () => {
@@ -119,20 +135,20 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
     e.preventDefault();
     
     // Filter out any empty entries
-    const filteredStrengths = strengths.filter(s => s.trim() !== '');
-    const filteredChallenges = challenges.filter(c => c.trim() !== '');
+    const filteredStrengths = strengths.filter(s => s && s.trim() !== '');
+    const filteredChallenges = challenges.filter(c => c && c.trim() !== '');
     
     // Create a properly typed selfRatings object
     const typedSelfRatings = {
-      strength: selfRatings.strength || 5,
-      intelligence: selfRatings.intelligence || 5,
-      creativity: selfRatings.creativity || 5,
-      discipline: selfRatings.discipline || 5,
-      vitality: selfRatings.vitality || 5,
-      social: selfRatings.social || 5
+      strength: Number(selfRatings.strength) || 5,
+      intelligence: Number(selfRatings.intelligence) || 5,
+      creativity: Number(selfRatings.creativity) || 5,
+      discipline: Number(selfRatings.discipline) || 5,
+      vitality: Number(selfRatings.vitality) || 5,
+      social: Number(selfRatings.social) || 5
     };
     
-    // Create a properly typed activityFrequency object
+    // Create a properly typed activityFrequency object with default fallbacks
     const typedActivityFrequency: ActivityFrequency = {
       physical: (activityFrequency.physical as 'never' | 'rarely' | 'monthly' | 'weekly' | 'daily') || 'weekly',
       mental: (activityFrequency.mental as 'never' | 'rarely' | 'monthly' | 'weekly' | 'daily') || 'weekly',
@@ -152,22 +168,22 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
   };
   
   return (
-    <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-primary mb-6">Your Current State</h2>
+    <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-primary mb-4">Your Current State</h2>
       <p className="text-gray-600 mb-6">
         Before we look to the future, let's get a picture of where you are today. This helps us create a more accurate
         starting point for your character and identify your true growth areas.
       </p>
       
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="currentDescription">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="space-y-3">
+          <label className="block text-gray-700 font-medium mb-1" htmlFor="currentDescription">
             Describe your current situation and lifestyle (in 2-3 sentences)
           </label>
           <textarea
             id="currentDescription"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe your current daily life, habits, and situation..."
@@ -175,82 +191,88 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
           />
         </div>
         
-        <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+        <div className="space-y-3">
+          <label className="block text-gray-700 font-medium mb-1">
             What are your current strengths? (activities, habits, or areas you excel in)
           </label>
           
-          {strengths.map((strength, index) => (
-            <div key={`strength-${index}`} className="flex items-center mb-2">
-              <input
-                type="text"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                value={strength}
-                onChange={(e) => handleUpdateStrength(index, e.target.value)}
-                placeholder="e.g., running regularly, reading, organization, etc."
-              />
-              
-              <button
-                type="button"
-                className="ml-2 text-red-500 hover:text-red-700"
-                onClick={() => handleRemoveStrength(index)}
-                aria-label="Remove strength"
-                disabled={strengths.length <= 1}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-          ))}
+          <div className="space-y-2">
+            {strengths.map((strength, index) => (
+              <div key={`strength-${index}`} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={strength}
+                  onChange={(e) => handleUpdateStrength(index, e.target.value)}
+                  placeholder="e.g., running regularly, reading, organization, etc."
+                />
+                
+                {strengths.length > 1 && (
+                  <button
+                    type="button"
+                    className="p-2 text-red-500 hover:text-red-700 rounded-md hover:bg-red-50"
+                    onClick={() => handleRemoveStrength(index)}
+                    aria-label="Remove strength"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
           
           <button
             type="button"
-            className="mt-2 text-primary hover:text-primary-dark flex items-center"
+            className="inline-flex items-center px-4 py-2 mt-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={handleAddStrength}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
             </svg>
             Add Another Strength
           </button>
         </div>
         
-        <div className="mb-8">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+        <div className="space-y-3">
+          <label className="block text-gray-700 font-medium mb-1">
             What challenges are you currently facing? (areas you want to improve)
           </label>
           
-          {challenges.map((challenge, index) => (
-            <div key={`challenge-${index}`} className="flex items-center mb-2">
-              <input
-                type="text"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                value={challenge}
-                onChange={(e) => handleUpdateChallenge(index, e.target.value)}
-                placeholder="e.g., procrastination, lack of focus, unhealthy eating, etc."
-              />
-              
-              <button
-                type="button"
-                className="ml-2 text-red-500 hover:text-red-700"
-                onClick={() => handleRemoveChallenge(index)}
-                aria-label="Remove challenge"
-                disabled={challenges.length <= 1}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-          ))}
+          <div className="space-y-2">
+            {challenges.map((challenge, index) => (
+              <div key={`challenge-${index}`} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={challenge}
+                  onChange={(e) => handleUpdateChallenge(index, e.target.value)}
+                  placeholder="e.g., procrastination, lack of focus, unhealthy eating, etc."
+                />
+                
+                {challenges.length > 1 && (
+                  <button
+                    type="button"
+                    className="p-2 text-red-500 hover:text-red-700 rounded-md hover:bg-red-50"
+                    onClick={() => handleRemoveChallenge(index)}
+                    aria-label="Remove challenge"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
           
           <button
             type="button"
-            className="mt-2 text-primary hover:text-primary-dark flex items-center"
+            className="inline-flex items-center px-4 py-2 mt-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={handleAddChallenge}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
             </svg>
             Add Another Challenge
@@ -258,16 +280,16 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
         </div>
         
         {/* Self-Rating Section */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4">Rate Your Current Abilities</h3>
-          <p className="text-gray-600 mb-4">
+        <div className="pt-4 border-t border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">Rate Your Current Abilities</h3>
+          <p className="text-gray-600 mb-4 text-sm">
             On a scale of 0-10, how would you rate yourself in these different areas?
           </p>
           
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {Object.keys(selfRatings).map((attribute) => (
-              <div key={attribute} className="mb-4">
-                <div className="flex justify-between mb-2">
+              <div key={attribute} className="mb-1">
+                <div className="flex justify-between mb-1">
                   <label className="text-gray-700 text-sm font-medium" htmlFor={`rating-${attribute}`}>
                     {attributeLabels[attribute]}
                   </label>
@@ -281,7 +303,7 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
                   step="1"
                   value={selfRatings[attribute]}
                   onChange={(e) => handleSelfRatingChange(attribute, parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>Beginner</span>
@@ -294,16 +316,16 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
         </div>
         
         {/* Activity Frequency Section */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4">Activity Frequency</h3>
-          <p className="text-gray-600 mb-4">
+        <div className="pt-4 border-t border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">Activity Frequency</h3>
+          <p className="text-gray-600 mb-4 text-sm">
             How often do you engage in the following types of activities?
           </p>
           
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             {Object.keys(activityFrequency).map((activity) => (
-              <div key={activity} className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor={`freq-${activity}`}>
+              <div key={activity}>
+                <label className="block text-gray-700 text-sm font-medium mb-1" htmlFor={`freq-${activity}`}>
                   {activityDescriptions[activity]}
                 </label>
                 <select
@@ -323,12 +345,12 @@ const CurrentStateAssessment: React.FC<CurrentStateAssessmentProps> = ({
           </div>
         </div>
         
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-end pt-6">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mr-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
             >
               Back
             </button>

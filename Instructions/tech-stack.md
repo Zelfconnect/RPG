@@ -5,6 +5,25 @@
 ### Framework/Library
 - **React (via Create React App)**: We'll use React as our primary frontend library for its component-based architecture, which aligns well with our modular UI needs. Create React App provides a beginner-friendly setup with no build configuration needed.
 
+### Platform Architecture
+- **Single Responsive PWA**: One application that adapts to all devices:
+  - **Mobile-optimized views**: For frequent, lightweight interactions like checking quests and updating progress
+  - **Desktop-optimized views**: Enhanced interfaces for deep reflection and narrative input
+  - **Responsive breakpoints**: Interface adapts based on screen size and device capabilities
+
+### Progressive Web App (PWA)
+- **Service Worker**: Implement offline functionality and caching strategies using Workbox
+- **Web App Manifest**: Enable home screen installation with custom icons and splash screens
+- **Offline Data Persistence**: Synchronize data when connectivity is restored
+- **Push Notifications**: For engagement features like habit reminders and achievements
+- **Responsive Design**: Optimize experience based on device capabilities
+
+### Writing Experience
+- **Responsive Rich Text Editor**: Implementation using a library like Draft.js, TinyMCE, or Quill
+- **Context-Aware Interface**: Enhanced features on larger screens, simplified on mobile
+- **AI-Assisted Writing**: Suggestions and prompts to guide reflection (optimized for desktop)
+- **Progressive Enhancement**: Core functionality works everywhere, advanced features on capable devices
+
 ### UI Component Libraries
 - **Tailwind CSS**: For styling, we'll use Tailwind CSS which provides utility classes that make it easy to create consistent, responsive designs without writing custom CSS. This is beginner-friendly while still allowing for sophisticated UI.
 - **Heroicons**: Simple, attractive icon set that integrates well with Tailwind
@@ -26,6 +45,19 @@ For beginners, we'll leverage Firebase as our complete backend solution:
 - **Firebase Hosting**: For deploying the application
 
 This approach eliminates the need to set up and maintain a separate backend server, making it much more accessible for beginners.
+
+## AI Integration
+
+### Natural Language Processing
+- **OpenAI API**: For transforming user writing into game elements
+- **Prompt Engineering**: Templates for different types of writing exercises
+- **Content Analysis**: Extract goals, themes, and priorities from user writing
+
+### Transformation Pipeline
+- **Narrative Generation**: Create character backstory and monthly summaries
+- **Quest Extraction**: Convert user goals into trackable quests with rewards
+- **Stat Adjustment**: Analyze focus areas to update character attributes
+- **Skill Tree Mapping**: Connect written goals to skill development paths
 
 ## Database
 
@@ -119,6 +151,24 @@ The primary collections in our Firestore database will be:
      reflections: string,
      xpGained: number,
      statsGained: object
+   }
+   ```
+
+6. **reflections**
+   ```
+   {
+     userId: string,
+     title: string,
+     content: string,
+     exerciseType: string, // "future-self", "origin-story", "monthly-review", etc.
+     aiProcessed: boolean,
+     transformedContent: {
+       narrative: string,
+       quests: array,
+       statChanges: object
+     },
+     createdAt: timestamp,
+     updatedAt: timestamp
    }
    ```
 
@@ -224,12 +274,17 @@ To make this project approachable for beginners, we'll break it down into smalle
 - Basic routing structure
 - User authentication (signup, login, logout)
 - Simple user profile page
+- Initial PWA configuration (web app manifest and basic service worker)
+- Basic responsive design implementation
 
 ### Phase 2: Character Creation System
-- Multi-step character creation flow
+- Streamlined future-oriented character creation flow
+- Essential tier with minimal time investment
 - Form handling and data storage
 - Basic character profile display
 - Initial stats visualization
+- AI transformation of writing to game elements
+- Responsive design for different screen sizes
 
 ### Phase 3: Core Dashboard
 - Main dashboard layout
@@ -258,6 +313,12 @@ To make this project approachable for beginners, we'll break it down into smalle
 ### Phase 7: Polish & Deployment
 - Animation and transition refinement
 - Performance optimization
+- Comprehensive PWA implementation
+  - Enhanced offline capabilities
+  - Improved install experience
+  - Background sync for offline actions
+  - Push notifications for engagement
+  - Responsive optimizations for all device types
 - Final testing
 - Deployment to Firebase Hosting
 

@@ -4,17 +4,17 @@
 
 ### 1. Discovery & Onboarding
 ```
-Landing Page → Sign Up → Character Creation (4 steps) → Dashboard Introduction
+Landing Page → Sign Up → Current State Assessment → Future Self Snapshot → Character Summary → Dashboard Introduction → Progressive Character Development
 ```
 
 ### 2. Monthly Cycle
 ```
-Monthly Planning → Real-world Execution → End-of-Month Review → Level Up & Rewards
+Daily Tracking → Deep Reflection Sessions (Enhanced on Larger Screens) → AI Transformation → Real-world Execution → End-of-Month Review → Level Up & Rewards
 ```
 
 ### 3. Ongoing Engagement
 ```
-Dashboard Check-ins → Quest Management → Skill Development → Character Evolution
+Dashboard Check-ins → Quest Management → Deep Reflection Sessions → Skill Development → Character Evolution
 ```
 
 ## Screen Inventory
@@ -25,13 +25,15 @@ Dashboard Check-ins → Quest Management → Skill Development → Character Evo
    - Welcome Introduction
 
 2. **Character Creation**
-   - Origin Story Creator
-   - Current Chapter Assessment
-   - Future Vision Builder
+   - Current State Assessment (Essential Tier)
+   - Future Self Snapshot (Essential Tier)
+   - Deep Reflection Interface (Enhanced on Larger Screens)
+   - Character Development Quests (Progressive Tier)
+   - Monthly Reflection Deepening (Ongoing Tier)
    - Character Summary
 
 3. **Core Application**
-   - Dashboard
+   - Dashboard (Responsive)
    - Quest Journal
    - Skill Tree
    - Character Profile
@@ -64,45 +66,85 @@ Dashboard Check-ins → Quest Management → Skill Development → Character Evo
 - **User Interactions**: Form submission, tab switching
 - **State Transitions**: Leads to onboarding for new users or dashboard for returning users
 
-### Character Creation: Origin Story
-- **Layout Structure**: Immersive full-screen with narrative prompts on the left, input area on right
+### Deep Reflection Interface
+- **Layout Structure**: Clean, distraction-free writing interface that adapts to screen size
 - **Key UI Components**:
-  - Storytelling prompts with examples
-  - Text input areas
+  - Rich text editor with formatting options (enhanced on larger screens)
+  - Guided prompts based on exercise type
+  - AI suggestion panel for writing assistance (more prominent on larger screens)
+  - Word count and estimated completion time
+  - "Transform My Story" button to process writing
+- **User Interactions**: Writing, responding to prompts, utilizing AI suggestions
+- **State Transitions**: After submission, processes content and updates character profile
+- **Responsive Behavior**: 
+  - On mobile: Simplified interface with core functionality
+  - On larger screens: Enhanced editing tools, side-by-side prompts, AI assistance
+
+### Character Creation: Current State Assessment
+- **Layout Structure**: Reflective assessment interface with focused prompts
+- **Key UI Components**:
+  - Current state description text area
+  - Strengths selection fields
+  - Challenges identification section
+  - Self-rating scales for key attributes (0-10)
+  - Activity frequency selection
   - Progress indicator
-  - "Save and Continue" button
-- **User Interactions**: Responding to narrative prompts, navigation between sections
-- **State Transitions**: Sequential progression through character creation
+  - "Continue to Future Vision" button
+- **User Interactions**: Text input, rating selection, frequency selection
+- **State Transitions**: Leads to Future Self Snapshot after completion
+- **Responsive Behavior**:
+  - On mobile: Focus on essential inputs
+  - On larger screens: Enhanced writing space and guidance
 
-### Character Creation: Current Chapter
-- **Layout Structure**: Similar to Origin Story with different content focus
+### Character Creation: Future Self Snapshot
+- **Layout Structure**: Immersive full-screen with inspirational visuals and focused input areas
 - **Key UI Components**:
-  - Current situation assessment prompts
-  - Sliders for rating different life aspects
-  - Text input for challenges and resources
-- **User Interactions**: Sliding scales, text input, selection of current priorities
-- **State Transitions**: Proceeds to Future Vision
+  - Future self visualization prompt
+  - Key habit selection (3 max)
+  - Major achievement vision
+  - Time estimate indicator (5-7 minutes)
+  - Progress indicator
+  - "Begin Your Journey" button
+  - Screen size adaptation notice (enhanced experience on larger screens)
+- **User Interactions**: Text input, habit selection, navigation
+- **State Transitions**: Leads to dashboard after completion
+- **Responsive Behavior**:
+  - On mobile: Focus on essential inputs
+  - On larger screens: Enhanced writing space and guidance
 
-### Character Creation: Future Vision
-- **Layout Structure**: Split screen with visualization aids and input areas
+### Character Development Quests
+- **Layout Structure**: Quest-style interface with narrative framing
 - **Key UI Components**:
-  - Vision board visual space
-  - Guided prompts for different life dimensions
-  - Timeline selector for short/medium/long-term goals
-- **User Interactions**: Text input, timeline selection, optional image uploads
-- **State Transitions**: Proceeds to Character Summary
+  - Quest cards for deeper character development
+  - XP rewards display
+  - Time estimate per quest
+  - Quest completion tracking
+- **User Interactions**: Quest selection, form completion, quest submission
+- **State Transitions**: Return to dashboard with updated character profile
 
-### Character Creation: Character Summary
+### Monthly Reflection Deepening
+- **Layout Structure**: Reflective journal interface tied to monthly review
+- **Key UI Components**:
+  - Monthly theme visualization
+  - Guided reflection prompts
+  - Character evolution visualization
+  - Timeline of growth
+  - Screen size adaptation for enhanced writing experience
+- **User Interactions**: Responsive interface adapts to current device for optimal reflection experience
+- **State Transitions**: Updates character profile with deeper insights
+
+### Character Summary
 - **Layout Structure**: Character sheet style layout with sections for different attributes
 - **Key UI Components**:
   - Character avatar/representation
-  - Starting stats visualization
-  - Initial skill affinities
+  - Stats visualization
+  - Skill affinities
   - Narrative summary of character
-- **User Interactions**: Review information, minor edits if needed
-- **State Transitions**: Leads to dashboard introduction
+  - Development quest progress
+- **User Interactions**: Review information, access character development quests
+- **State Transitions**: Links to dashboard and character development areas
 
-### Dashboard
+### Dashboard (Responsive)
 - **Layout Structure**: Central hub with card-based layout and sidebar navigation
 - **Key UI Components**:
   - Chapter narrative card (current story)

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { UserProfile } from '../types/user';
 import { getCharacterData, CharacterData } from '../services/characterService';
@@ -10,7 +10,6 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasCharacter, setHasCharacter] = useState(false);
   const [characterData, setCharacterData] = useState<CharacterData | null>(null);
 
   useEffect(() => {
@@ -19,9 +18,6 @@ const Dashboard: React.FC = () => {
         try {
           const profile = await getUserProfile(currentUser.uid);
           setUserProfile(profile);
-          
-          // Check if the user has created a character (has futureVision)
-          setHasCharacter(profile?.futureVision ? true : false);
         } catch (error) {
           console.error('Error fetching user profile:', error);
         } finally {
