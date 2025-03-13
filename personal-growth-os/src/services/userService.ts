@@ -1,7 +1,7 @@
 import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db, usersCollection } from './firebase';
-import { UserProfile } from '../types/user';
+import { UserProfile, calculateLevelFromXP, calculateXPForLevel } from '../types/user';
 
 /**
  * Get a user's profile from Firestore
@@ -33,16 +33,17 @@ export const createDefaultUserProfile = (user: User): UserProfile => {
     photoURL: user.photoURL || '',
     createdAt: Timestamp.now(),
     
-    // Default character stats
+    // Default character stats (on 0-10 scale)
     level: 1,
     experience: 0,
+    nextLevelExperience: 100, // BASE_XP_LEVEL from user.ts
     stats: {
-      strength: 1,
-      intelligence: 1,
-      creativity: 1,
-      discipline: 1,
-      vitality: 1,
-      social: 1,
+      strength: 5,     // Starting at middle of 0-10 scale
+      intelligence: 5,
+      creativity: 5,
+      discipline: 5,
+      vitality: 5,
+      social: 5,
     },
     
     // Default game progress
@@ -54,6 +55,27 @@ export const createDefaultUserProfile = (user: User): UserProfile => {
     originStory: '',
     currentChapter: '',
     futureVision: '',
+    
+    // Character development with new structure
+    currentState: {
+      description: '',
+      strengths: [],
+      challenges: []
+    },
+    
+    // Empty character structure for additional data
+    character: {
+      futureVision: {
+        description: '',
+        keyHabits: [],
+        majorGoal: ''
+      },
+      currentState: {
+        description: '',
+        strengths: [],
+        challenges: []
+      }
+    }
   };
 };
 
@@ -96,14 +118,18 @@ export const addExperience = async (
     const currentLevel = userProfile.level || 1;
     const newXp = currentXp + xpAmount;
     
-    // Simple leveling formula: level = 1 + floor(sqrt(xp / 100))
-    const newLevel = 1 + Math.floor(Math.sqrt(newXp / 100));
+    // Use the level calculation function from user.ts
+    const newLevel = calculateLevelFromXP(newXp);
     const leveledUp = newLevel > currentLevel;
+    
+    // Calculate XP needed for next level
+    const nextLevelXP = calculateXPForLevel(newLevel + 1);
     
     // Update user profile with new XP and level
     await updateUserProfile(userId, {
       experience: newXp,
       level: newLevel,
+      nextLevelExperience: nextLevelXP,
       // If leveled up, add skill points
       skillPoints: leveledUp 
         ? (userProfile.skillPoints || 0) + (newLevel - currentLevel) 
