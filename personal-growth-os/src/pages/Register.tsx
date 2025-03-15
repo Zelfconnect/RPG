@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { createDefaultUserProfile } from '../services/userService';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../services/firebase';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,46 +10,36 @@ const Register: React.FC = () => {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
   const navigate = useNavigate();
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (password !== passwordConfirm) {
       return setError('Passwords do not match');
     }
-
-    if (password.length < 6) {
-      return setError('Password must be at least 6 characters');
-    }
-
+    
     try {
       setError('');
       setLoading(true);
       
-      // Register the user with Firebase Authentication
-      const userCredential = await register(email, password, {
-        displayName,
-      });
+      // Create firebase user
+      await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update display name
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: displayName || email.split('@')[0]
+        });
+      }
       
       navigate('/dashboard');
-    } catch (error: any) {
-      // Handle specific Firebase auth errors
-      if (error.code === 'auth/email-already-in-use') {
-        setError('Email is already in use');
-      } else if (error.code === 'auth/invalid-email') {
-        setError('Invalid email address');
-      } else if (error.code === 'auth/weak-password') {
-        setError('Password is too weak');
-      } else {
-        setError('Failed to create an account');
-        console.error(error);
-      }
+    } catch (e) {
+      setError('Failed to create an account: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

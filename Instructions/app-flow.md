@@ -159,11 +159,20 @@ Dashboard Check-ins → Quest Management → Deep Reflection Sessions → Skill 
 - **Layout Structure**: Main quest area with filtering sidebar and quest details panel
 - **Key UI Components**:
   - Quest cards with progress indicators
-  - Quest type filters
+  - Streak counters and visual indicators for habits
+  - Quest type filters (one-time, daily habits, weekly habits)
+  - Habit streak visualization with "chain" graphics
   - Detailed view for selected quest
   - Add/Edit quest buttons
-- **User Interactions**: View quests, filter by type, mark progress, add new quests
+- **User Interactions**: 
+  - View quests, filter by type, mark progress
+  - Check off recurring habit quests
+  - View streak information and streak rewards
+  - Add new quests of different types
 - **State Transitions**: Can lead to quest creation/editing flows
+- **Responsive Behavior**:
+  - Mobile: Simplified list view with essential streak info
+  - Desktop: Expanded view with detailed streak analytics
 
 ### Skill Tree
 - **Layout Structure**: Interactive visualization with detail panel

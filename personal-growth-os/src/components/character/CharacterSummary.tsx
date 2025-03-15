@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { CharacterData } from '../../services/characterService';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUserProfile } from '../../services/userService';
 import { UserProfile } from '../../types/user';
 
 interface CharacterSummaryProps {
@@ -159,132 +158,154 @@ const CharacterSummary: React.FC<CharacterSummaryProps> = ({
 
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-primary mb-4">Character Summary</h2>
-      
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-3">Your Character Overview</h3>
-        <p className="text-gray-600 mb-4">
-          Based on your current state and your vision for the future, here's how your character looks.
-        </p>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h4 className="font-semibold text-gray-700 mb-2">Current State</h4>
-            <p className="text-gray-600 mb-3">{currentState.description}</p>
-            
-            {Array.isArray(currentState.strengths) && currentState.strengths.length > 0 && (
-              <div className="mb-3">
-                <h5 className="font-medium text-gray-600 mb-1">Current Strengths:</h5>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
-                  {currentState.strengths.map((strength, index) => (
-                    <li key={`strength-${index}`}>{strength}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {Array.isArray(currentState.challenges) && currentState.challenges.length > 0 && (
-              <div>
-                <h5 className="font-medium text-gray-600 mb-1">Current Challenges:</h5>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
-                  {currentState.challenges.map((challenge, index) => (
-                    <li key={`challenge-${index}`}>{challenge}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+      {!characterData ? (
+        <div className="text-center py-8">
+          <p>Loading your character data...</p>
+        </div>
+      ) : (
+        <>
+          <h2 className="text-2xl font-bold text-primary mb-4">Your Character Summary</h2>
+          <p className="text-gray-600 mb-6">
+            Great job! Here's a summary of your character based on what you've shared. This will be your starting point for growth.
+          </p>
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Overview</h3>
+            <p className="text-gray-700">
+              You're starting from where you are today and working toward becoming your future self. The journey ahead will
+              help you develop in key areas and track your progress over time.
+            </p>
           </div>
           
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h4 className="font-semibold text-gray-700 mb-2">Future Vision</h4>
-            <p className="text-gray-600 mb-3">{futureVision.description}</p>
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-3">Your Character Overview</h3>
+            <p className="text-gray-600 mb-4">
+              Based on your current state and your vision for the future, here's how your character looks.
+            </p>
             
-            {Array.isArray(futureVision.keyHabits) && futureVision.keyHabits.length > 0 && (
-              <div className="mb-3">
-                <h5 className="font-medium text-gray-600 mb-1">Key Habits:</h5>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
-                  {futureVision.keyHabits.map((habit, index) => (
-                    <li key={`habit-${index}`}>{habit}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {futureVision.majorGoal && (
-              <div>
-                <h5 className="font-medium text-gray-600 mb-1">Major Goal:</h5>
-                <p className="text-gray-600">{futureVision.majorGoal}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-3">Your Attributes</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(statsData || {}).map(([stat, value]) => {
-            const statKey = stat as keyof UserProfile['stats'];
-            const growthArea = (growthAreas || {})[statKey];
-            
-            // Ensure value is a number
-            const numericValue = typeof value === 'number' ? value : 1;
-            
-            // Use the getStatColorClass function to apply the appropriate color
-            const colorClass = getStatColorClass(numericValue);
-            
-            return (
-              <div key={stat} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-semibold">{formatAttributeName(stat)}</h4>
-                  <span className="text-lg font-bold text-primary">{numericValue}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                  <div
-                    className={`${colorClass} h-2.5 rounded-full`}
-                    style={{ width: `${(numericValue / 10) * 100}%` }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-600 mb-1">{getStatDescription(stat, numericValue)}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-700 mb-2">Current State</h4>
+                <p className="text-gray-600 mb-3">{currentState.description}</p>
                 
-                {growthArea && (
-                  <div className="mt-2 text-xs">
-                    <p className="text-blue-600">
-                      Growth potential: {growthArea.current} → {growthArea.target}
-                    </p>
+                {Array.isArray(currentState.strengths) && currentState.strengths.length > 0 && (
+                  <div className="mb-3">
+                    <h5 className="font-medium text-gray-600 mb-1">Current Strengths:</h5>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      {currentState.strengths.map((strength, index) => (
+                        <li key={`strength-${index}`}>{strength}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {Array.isArray(currentState.challenges) && currentState.challenges.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-gray-600 mb-1">Current Challenges:</h5>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      {currentState.challenges.map((challenge, index) => (
+                        <li key={`challenge-${index}`}>{challenge}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      </div>
-      
-      <div className="pt-4 border-t border-gray-200">
-        <p className="text-gray-600 mb-4">
-          This is your starting point. As you complete quests and develop habits, your character will grow and
-          evolve. Your future vision will guide your journey, but remember that growth is not linear - embrace the
-          challenges as opportunities to level up your character.
-        </p>
-        
-        <div className="flex justify-end pt-6">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="mr-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Back
-            </button>
-          )}
+              
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-700 mb-2">Future Vision</h4>
+                <p className="text-gray-600 mb-3">{futureVision.description}</p>
+                
+                {Array.isArray(futureVision.keyHabits) && futureVision.keyHabits.length > 0 && (
+                  <div className="mb-3">
+                    <h5 className="font-medium text-gray-600 mb-1">Key Habits:</h5>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      {futureVision.keyHabits.map((habit, index) => (
+                        <li key={`habit-${index}`}>{habit}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {futureVision.majorGoal && (
+                  <div>
+                    <h5 className="font-medium text-gray-600 mb-1">Major Goal:</h5>
+                    <p className="text-gray-600">{futureVision.majorGoal}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           
-          <button
-            onClick={onComplete}
-            className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            Begin Your Journey
-          </button>
-        </div>
-      </div>
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-3">Your Attributes</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(statsData || {}).map(([stat, value]) => {
+                const statKey = stat as keyof UserProfile['stats'];
+                const growthArea = (growthAreas || {})[statKey];
+                
+                // Ensure value is a number
+                const numericValue = typeof value === 'number' ? value : 1;
+                
+                // Use the getStatColorClass function to apply the appropriate color
+                const colorClass = getStatColorClass(numericValue);
+                
+                return (
+                  <div key={stat} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-semibold">{formatAttributeName(stat)}</h4>
+                      <span className="text-lg font-bold text-primary">{numericValue}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                      <div
+                        className={`${colorClass} h-2.5 rounded-full`}
+                        style={{ width: `${(numericValue / 10) * 100}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">{getStatDescription(stat, numericValue)}</p>
+                    
+                    {growthArea && (
+                      <div className="mt-2 text-xs">
+                        <p className="text-blue-600">
+                          Growth potential: {growthArea.current} → {growthArea.target}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          <div className="pt-4 border-t border-gray-200">
+            <p className="text-gray-600 mb-4">
+              This is your starting point. As you complete quests and develop habits, your character will grow and
+              evolve. Your future vision will guide your journey, but remember that growth is not linear - embrace the
+              challenges as opportunities to level up your character.
+            </p>
+            
+            {/* Navigation buttons */}
+            <div className="flex justify-between pt-6 border-t border-gray-200 mt-8">
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 font-medium"
+                >
+                  Back
+                </button>
+              )}
+              
+              <button
+                type="button"
+                onClick={onComplete}
+                className="px-6 py-2.5 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary font-medium shadow-sm"
+              >
+                Continue to Dashboard
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

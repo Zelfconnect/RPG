@@ -1,5 +1,5 @@
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db, usersCollection } from './firebase';
+import { usersCollection } from './firebase';
 import { UserProfile } from '../types/user';
 
 // Define the ActivityFrequency type for use throughout the application
@@ -252,12 +252,13 @@ export const getCharacterData = async (userId: string): Promise<CharacterData | 
 
 // Function to calculate attribute scores from activity frequency
 export function calculateActivityFrequencyScores(activityFrequency: ActivityFrequency) {
+  // Enhanced frequency values with finer gradation on 0-10 scale
   const frequencyValues = {
-    'never': 0,
-    'rarely': 3,
-    'monthly': 5,
-    'weekly': 7,
-    'daily': 10
+    'never': 0,      // No activity = minimum score
+    'rarely': 2.5,   // Rare activity = low score
+    'monthly': 5,    // Monthly activity = medium score
+    'weekly': 7.5,   // Weekly activity = high score
+    'daily': 10      // Daily activity = maximum score
   };
   
   // Initialize scores for each attribute
@@ -270,15 +271,53 @@ export function calculateActivityFrequencyScores(activityFrequency: ActivityFreq
     social: 0
   };
   
-  // Map activity categories to attributes
-  scores.strength += frequencyValues[activityFrequency.physical];
-  scores.intelligence += frequencyValues[activityFrequency.mental];
-  scores.creativity += frequencyValues[activityFrequency.creative];
-  scores.discipline += frequencyValues[activityFrequency.routine];
-  scores.vitality += frequencyValues[activityFrequency.wellness];
-  scores.social += frequencyValues[activityFrequency.social];
+  // Primary activity mappings
+  scores.strength = frequencyValues[activityFrequency.physical];
+  scores.intelligence = frequencyValues[activityFrequency.mental];
+  scores.creativity = frequencyValues[activityFrequency.creative];
+  scores.discipline = frequencyValues[activityFrequency.routine];
+  scores.vitality = frequencyValues[activityFrequency.wellness];
+  scores.social = frequencyValues[activityFrequency.social];
   
-  // Return normalized scores (on 0-10 scale)
+  // Secondary contributions - certain activities affect multiple attributes
+  // Physical activity contributes to vitality
+  if (activityFrequency.physical !== 'never') {
+    const contributionFactor = 0.3; // 30% contribution
+    const physicalContribution = frequencyValues[activityFrequency.physical] * contributionFactor;
+    scores.vitality = Math.min(10, scores.vitality + physicalContribution);
+  }
+  
+  // Wellness practices contribute to discipline
+  if (activityFrequency.wellness !== 'never') {
+    const contributionFactor = 0.2; // 20% contribution
+    const wellnessContribution = frequencyValues[activityFrequency.wellness] * contributionFactor;
+    scores.discipline = Math.min(10, scores.discipline + wellnessContribution);
+  }
+  
+  // Routine practices contribute to discipline significantly
+  if (activityFrequency.routine !== 'never') {
+    // Already counted as primary factor
+  }
+  
+  // Mental activities contribute to creativity
+  if (activityFrequency.mental !== 'never') {
+    const contributionFactor = 0.2; // 20% contribution
+    const mentalContribution = frequencyValues[activityFrequency.mental] * contributionFactor;
+    scores.creativity = Math.min(10, scores.creativity + mentalContribution);
+  }
+  
+  // Creative activities can contribute to intelligence
+  if (activityFrequency.creative !== 'never') {
+    const contributionFactor = 0.2; // 20% contribution
+    const creativeContribution = frequencyValues[activityFrequency.creative] * contributionFactor;
+    scores.intelligence = Math.min(10, scores.intelligence + creativeContribution);
+  }
+  
+  // Round all scores to one decimal place
+  Object.keys(scores).forEach(key => {
+    scores[key as keyof typeof scores] = Math.round(scores[key as keyof typeof scores] * 10) / 10;
+  });
+  
   return scores;
 }
 
@@ -294,51 +333,102 @@ export function calculateAttributesFromCurrentState(currentState: CharacterData[
     social: 5
   };
   
-  // Weight for each component
-  const weights = {
-    selfRating: 0.6,    // 60% weight for self-ratings
-    frequency: 0.3,     // 30% weight for activity frequency
-    textAnalysis: 0.1   // 10% weight for text analysis
+  // Enhanced weight system with dynamic adjustments
+  const baseWeights = {
+    selfRating: 0.6,    // 60% weight for self-ratings (most accurate)
+    frequency: 0.3,     // 30% weight for activity frequency (objective data)
+    textAnalysis: 0.1   // 10% weight for text analysis (least precise)
   };
   
-  // 1. Process self-ratings if available (60% weight)
+  // Track which data sources are available
+  const availableDataSources = {
+    hasSelfRatings: !!currentState.selfRatings,
+    hasFrequency: !!currentState.activityFrequency,
+    hasTextData: !!(currentState.description || (currentState.strengths && currentState.strengths.length > 0))
+  };
+  
+  // Dynamically adjust weights based on available data
+  const adjustedWeights = { ...baseWeights };
+  
+  // If self-ratings are missing, redistribute weight
+  if (!availableDataSources.hasSelfRatings) {
+    if (availableDataSources.hasFrequency) {
+      adjustedWeights.frequency += baseWeights.selfRating * 0.7;
+      adjustedWeights.textAnalysis += baseWeights.selfRating * 0.3;
+    } else if (availableDataSources.hasTextData) {
+      adjustedWeights.textAnalysis += baseWeights.selfRating;
+    }
+    adjustedWeights.selfRating = 0;
+  }
+  
+  // If frequency data is missing, redistribute weight
+  if (!availableDataSources.hasFrequency) {
+    if (availableDataSources.hasSelfRatings) {
+      adjustedWeights.selfRating += baseWeights.frequency * 0.7;
+      adjustedWeights.textAnalysis += baseWeights.frequency * 0.3;
+    } else if (availableDataSources.hasTextData) {
+      adjustedWeights.textAnalysis += baseWeights.frequency;
+    }
+    adjustedWeights.frequency = 0;
+  }
+  
+  // If text data is missing, redistribute weight
+  if (!availableDataSources.hasTextData) {
+    if (availableDataSources.hasSelfRatings) {
+      adjustedWeights.selfRating += baseWeights.textAnalysis * 0.7;
+      adjustedWeights.frequency += baseWeights.textAnalysis * 0.3;
+    } else if (availableDataSources.hasFrequency) {
+      adjustedWeights.frequency += baseWeights.textAnalysis;
+    }
+    adjustedWeights.textAnalysis = 0;
+  }
+  
+  // 1. Process self-ratings if available
   if (currentState.selfRatings) {
     Object.entries(currentState.selfRatings).forEach(([attr, value]) => {
       if (attr in attributes) {
         attributes[attr as keyof typeof attributes] = 
-          (attributes[attr as keyof typeof attributes] * (1 - weights.selfRating)) + 
-          (value * weights.selfRating);
+          (attributes[attr as keyof typeof attributes] * (1 - adjustedWeights.selfRating)) + 
+          (value * adjustedWeights.selfRating);
       }
     });
   }
   
-  // 2. Process activity frequency if available (30% weight)
+  // 2. Process activity frequency if available
   if (currentState.activityFrequency) {
     const frequencyScores = calculateActivityFrequencyScores(currentState.activityFrequency as ActivityFrequency);
     Object.entries(frequencyScores).forEach(([attr, value]) => {
       if (attr in attributes) {
         attributes[attr as keyof typeof attributes] = 
-          (attributes[attr as keyof typeof attributes] * (1 - weights.frequency)) + 
-          (value * weights.frequency);
+          (attributes[attr as keyof typeof attributes] * (1 - adjustedWeights.frequency)) + 
+          (value * adjustedWeights.frequency);
       }
     });
   }
   
-  // 3. Process text analysis (10% weight)
-  // Combine text data into a single string for analysis
-  const combinedText = currentState.description + ' ' + currentState.strengths.join(' ');
-  
-  // Analyze strengths and description for keywords
-  const strengthScore = analyzeTextForAttributes(combinedText);
-  
-  // Apply text analysis scores with 10% weight
-  Object.entries(strengthScore).forEach(([attr, value]) => {
-    if (attr in attributes) {
-      attributes[attr as keyof typeof attributes] = 
-        (attributes[attr as keyof typeof attributes] * (1 - weights.textAnalysis)) + 
-        (value * weights.textAnalysis);
+  // 3. Process text analysis
+  if (adjustedWeights.textAnalysis > 0) {
+    // Combine text data into a single string for analysis
+    const textParts = [];
+    if (currentState.description) textParts.push(currentState.description);
+    if (currentState.strengths && currentState.strengths.length > 0) textParts.push(currentState.strengths.join(' '));
+    
+    const combinedText = textParts.join(' ');
+    
+    if (combinedText.trim().length > 0) {
+      // Analyze text data for keywords
+      const textScores = analyzeTextForAttributes(combinedText);
+      
+      // Apply text analysis scores with dynamically adjusted weight
+      Object.entries(textScores).forEach(([attr, value]) => {
+        if (attr in attributes) {
+          attributes[attr as keyof typeof attributes] = 
+            (attributes[attr as keyof typeof attributes] * (1 - adjustedWeights.textAnalysis)) + 
+            (value * adjustedWeights.textAnalysis);
+        }
+      });
     }
-  });
+  }
   
   // Round all attribute values to 1 decimal place
   Object.keys(attributes).forEach(key => {
@@ -491,33 +581,135 @@ function analyzeTextForAttributes(text: string) {
     social: 5
   };
   
-  // Keywords for each attribute
-  const keywords: Record<string, string[]> = {
-    strength: ['strong', 'fit', 'athletic', 'exercise', 'workout', 'gym', 'physical', 'sport'],
-    intelligence: ['smart', 'intelligent', 'learn', 'study', 'read', 'problem', 'solve', 'analyze', 'knowledge'],
-    creativity: ['creative', 'art', 'music', 'write', 'design', 'imagine', 'innovative', 'novel', 'original'],
-    discipline: ['discipline', 'routine', 'habit', 'consistent', 'organize', 'plan', 'focus', 'committed'],
-    vitality: ['energy', 'health', 'sleep', 'nutrition', 'diet', 'rest', 'recovery', 'wellbeing', 'wellness'],
-    social: ['social', 'friend', 'family', 'communicate', 'relationship', 'connect', 'network', 'community']
+  // Enhanced keywords for each attribute with weighted importance
+  const keywords: Record<string, Array<{word: string, weight: number}>> = {
+    strength: [
+      {word: 'strong', weight: 1.5},
+      {word: 'fit', weight: 1.5},
+      {word: 'athletic', weight: 1.2},
+      {word: 'exercise', weight: 1.2},
+      {word: 'workout', weight: 1.2},
+      {word: 'gym', weight: 1},
+      {word: 'physical', weight: 1},
+      {word: 'sport', weight: 1},
+      {word: 'active', weight: 0.8},
+      {word: 'endurance', weight: 1.3}
+    ],
+    intelligence: [
+      {word: 'smart', weight: 1.5},
+      {word: 'intelligent', weight: 1.5},
+      {word: 'learn', weight: 1.2},
+      {word: 'study', weight: 1.2},
+      {word: 'read', weight: 1},
+      {word: 'problem', weight: 1},
+      {word: 'solve', weight: 1},
+      {word: 'analyze', weight: 1.2},
+      {word: 'knowledge', weight: 1.3},
+      {word: 'research', weight: 1.1},
+      {word: 'think', weight: 0.8}
+    ],
+    creativity: [
+      {word: 'creative', weight: 1.5},
+      {word: 'art', weight: 1.2},
+      {word: 'music', weight: 1.2},
+      {word: 'write', weight: 1},
+      {word: 'design', weight: 1.2},
+      {word: 'imagine', weight: 1.3},
+      {word: 'innovative', weight: 1.5},
+      {word: 'novel', weight: 1},
+      {word: 'original', weight: 1},
+      {word: 'paint', weight: 1},
+      {word: 'craft', weight: 1},
+      {word: 'idea', weight: 0.8}
+    ],
+    discipline: [
+      {word: 'discipline', weight: 1.5},
+      {word: 'routine', weight: 1.2},
+      {word: 'habit', weight: 1.2},
+      {word: 'consistent', weight: 1.3},
+      {word: 'organize', weight: 1},
+      {word: 'plan', weight: 1},
+      {word: 'focus', weight: 1.2},
+      {word: 'committed', weight: 1.3},
+      {word: 'determined', weight: 1.2},
+      {word: 'persevere', weight: 1.5},
+      {word: 'schedule', weight: 1}
+    ],
+    vitality: [
+      {word: 'energy', weight: 1.2},
+      {word: 'health', weight: 1.3},
+      {word: 'sleep', weight: 1.2},
+      {word: 'nutrition', weight: 1.2},
+      {word: 'diet', weight: 1},
+      {word: 'rest', weight: 1},
+      {word: 'recovery', weight: 1},
+      {word: 'wellbeing', weight: 1.3},
+      {word: 'wellness', weight: 1.3},
+      {word: 'meditate', weight: 1.2},
+      {word: 'mindful', weight: 1.1}
+    ],
+    social: [
+      {word: 'social', weight: 1.3},
+      {word: 'friend', weight: 1.2},
+      {word: 'family', weight: 1.2},
+      {word: 'communicate', weight: 1.1},
+      {word: 'relationship', weight: 1.3},
+      {word: 'connect', weight: 1.2},
+      {word: 'network', weight: 1},
+      {word: 'community', weight: 1.2},
+      {word: 'team', weight: 1},
+      {word: 'collaborate', weight: 1.1},
+      {word: 'share', weight: 0.8}
+    ]
   };
   
   // Check for keywords for each attribute
-  Object.entries(keywords).forEach(([attr, words]) => {
-    let matchCount = 0;
-    words.forEach(word => {
+  Object.entries(keywords).forEach(([attr, wordList]) => {
+    let weightedMatchScore = 0;
+    
+    wordList.forEach(({word, weight}) => {
       // Count occurrences of each keyword
       const regex = new RegExp(`\\b${word}\\w*\\b`, 'gi');
       const matches = textLower.match(regex);
       if (matches) {
-        matchCount += matches.length;
+        weightedMatchScore += matches.length * weight;
       }
     });
     
-    // Adjust score based on keyword matches (max +/- 5 points)
-    if (matchCount > 0) {
-      // Calculate boost (max 5 points)
-      const boost = Math.min(5, matchCount * 1.5);
-      scores[attr as keyof typeof scores] = Math.min(10, 5 + boost);
+    // Adjust score based on weighted keyword matches (max +/- 5 points)
+    if (weightedMatchScore > 0) {
+      // More nuanced calculation with diminishing returns for lots of matches
+      // First 3 points are easier to get, beyond that it gets harder
+      const basePlus = Math.min(3, weightedMatchScore * 0.8);
+      const extraPlus = weightedMatchScore > 3 ? Math.min(2, (weightedMatchScore - 3) * 0.4) : 0;
+      const totalBoost = basePlus + extraPlus;
+      
+      scores[attr as keyof typeof scores] = Math.min(10, 5 + totalBoost);
+    }
+  });
+  
+  // Analyze for negative indicators that might reduce scores
+  const negativeIndicators: Record<string, string[]> = {
+    strength: ['inactive', 'sedentary', 'weak', 'unfit'],
+    intelligence: ['confused', 'struggling to learn', 'difficult to understand'],
+    creativity: ['uncreative', 'stuck', 'blocked', 'uninspired'],
+    discipline: ['procrastinate', 'distracted', 'unfocused', 'chaotic', 'disorganized'],
+    vitality: ['tired', 'exhausted', 'unhealthy', 'sick', 'stressed'],
+    social: ['lonely', 'isolated', 'shy', 'withdrawn', 'antisocial']
+  };
+  
+  Object.entries(negativeIndicators).forEach(([attr, indicators]) => {
+    let negativeCount = 0;
+    indicators.forEach(indicator => {
+      if (textLower.includes(indicator)) {
+        negativeCount++;
+      }
+    });
+    
+    // Apply penalties for negative indicators
+    if (negativeCount > 0) {
+      const penalty = Math.min(3, negativeCount * 1.2);
+      scores[attr as keyof typeof scores] = Math.max(1, scores[attr as keyof typeof scores] - penalty);
     }
   });
   

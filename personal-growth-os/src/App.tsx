@@ -6,8 +6,11 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import CharacterCreation from './pages/CharacterCreation';
+import ModernCharacterCreation from './pages/ModernCharacterCreation';
 import FirebaseTest from './components/FirebaseTest';
 import FirebaseDirectTest from './components/FirebaseDirectTest';
+import QuestJournal from './components/quests/QuestJournal';
+import QuestForm from './components/quests/QuestForm';
 import './App.css';
 
 function App() {
@@ -25,6 +28,12 @@ function App() {
           <Route element={<PrivateRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/character-creation" element={<CharacterCreation />} />
+            <Route path="/modern-character-creation" element={<ModernCharacterCreation />} />
+            <Route path="/character" element={<Navigate to="/modern-character-creation" />} />
+            <Route path="/quests" element={<QuestJournal />} />
+            <Route path="/create-quest" element={<QuestForm />} />
+            <Route path="/edit-quest/:questId" element={<QuestForm />} />
+            <Route path="/skills" element={<Dashboard />} /> {/* Placeholder until Skills page is built */}
           </Route>
           
           {/* Redirect to dashboard by default */}

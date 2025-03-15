@@ -46,7 +46,7 @@ export async function createQuest(questData) {
       userId: user.uid,
       title: questData.title,
       description: questData.description,
-      type: questData.type,
+      type: questData.type, // "one-time", "habit-daily", "habit-weekly", etc.
       difficulty: questData.difficulty,
       status: 'active',
       progress: 0,
@@ -55,6 +55,14 @@ export async function createQuest(questData) {
       relatedSkills: questData.relatedSkills || [],
       startDate: questData.startDate || new Date(),
       endDate: questData.endDate || null,
+      // Habit tracking fields
+      isHabit: questData.isHabit || false,
+      frequency: questData.frequency, // "daily", "weekly", "monthly"
+      currentStreak: 0,
+      longestStreak: 0,
+      lastCompletedAt: null,
+      completionHistory: [],
+      streakBonusMultiplier: 1.0, // Increases with streak length
       createdAt: new Date(),
       updatedAt: new Date()
     };

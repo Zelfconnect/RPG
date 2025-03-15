@@ -8,12 +8,30 @@ Personal Growth OS is a web application that helps users track their personal de
 
 ## Features
 
+- Narrative-driven character creation and development
+- Monthly quest system for goal setting and tracking
+- RPG-inspired skill trees and attribute progression
+- Time-efficient monthly review and planning cycles
+- Dual assessment approach (current state + future vision)
+- Character attribute system with weighted scoring
+- Detailed self-rating system with descriptive feedback
+- Activity frequency tracking with impact explanations
+
+## Current Status
+
+The project is currently in active development with the following components implemented:
 - User authentication with Firebase
-- Dashboard to track personal growth
-- Daily quests system
-- Character stats tracking
-- Achievements system
-- Narrative-driven experience
+- Character creation flow with enhanced current state assessment and future vision
+- Character attribute calculation system with weighted scoring
+- Basic dashboard with character stats display
+- Detailed self-rating interface with visual indicators
+
+Recent improvements include:
+- Enhanced UI layout and styling for character creation components
+- Implemented defensive programming to prevent runtime errors
+- Improved type safety for character data handling
+- Upgraded Current State Assessment with better UI and meaningful feedback
+- Added activity frequency impact explanations showing how habits affect attributes
 
 ## Tech Stack
 

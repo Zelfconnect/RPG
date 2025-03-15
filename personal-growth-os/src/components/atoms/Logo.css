@@ -1,0 +1,21 @@
+/* Logo styling to prevent extreme scaling */
+.app-logo {
+  max-width: 120px;
+  max-height: 120px;
+  display: block;
+  margin: 0 auto;
+}
+
+.app-logo-small {
+  max-width: 40px;
+  max-height: 40px;
+}
+
+.app-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  max-width: 100%;
+  overflow: hidden;
+} 

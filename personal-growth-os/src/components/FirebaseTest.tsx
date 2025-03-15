@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth, db, analytics } from '../services/firebase';
+import { db, analytics } from '../services/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { isSupported } from 'firebase/analytics';
 

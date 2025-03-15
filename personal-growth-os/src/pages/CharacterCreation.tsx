@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { CharacterData, saveFutureVision, saveCurrentState, calculateAndSaveGrowthAreas, getCharacterData } from '../services/characterService';
-import { updateUserProfile } from '../services/userService';
 
 // Individual step components
 import FutureSelfSnapshot from '../components/character/FutureSelfSnapshot';
@@ -168,7 +167,7 @@ const CharacterCreation: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-6">Create Your Character</h1>
+        <h1 className="text-3xl font-bold text-center text-gray-900 mb-6">Let's Get to Know You</h1>
         
         <div className="bg-white shadow-sm rounded-lg mb-8 py-4">
           <ol className="flex justify-center items-center space-x-2 sm:space-x-8">
@@ -179,7 +178,7 @@ const CharacterCreation: React.FC = () => {
               }`}>
                 1
               </span>
-              <span className="ml-2 text-sm sm:text-base">Current State</span>
+              <span className="ml-2 text-sm sm:text-base font-medium">Tell Us About Yourself Today</span>
             </li>
             <div className="w-8 sm:w-12 h-0.5 bg-gray-300"></div>
             <li className={`flex items-center ${currentStep === CreationStep.FUTURE_SELF ? 'text-primary font-medium' : 'text-gray-500'}`}>
@@ -189,7 +188,7 @@ const CharacterCreation: React.FC = () => {
               }`}>
                 2
               </span>
-              <span className="ml-2 text-sm sm:text-base">Future Self</span>
+              <span className="ml-2 text-sm sm:text-base font-medium">Your Future Self</span>
             </li>
             <div className="w-8 sm:w-12 h-0.5 bg-gray-300"></div>
             <li className={`flex items-center ${currentStep === CreationStep.SUMMARY ? 'text-primary font-medium' : 'text-gray-500'}`}>
@@ -198,7 +197,7 @@ const CharacterCreation: React.FC = () => {
               }`}>
                 3
               </span>
-              <span className="ml-2 text-sm sm:text-base">Summary</span>
+              <span className="ml-2 text-sm sm:text-base font-medium">Summary</span>
             </li>
           </ol>
         </div>

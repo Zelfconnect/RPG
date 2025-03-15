@@ -95,8 +95,8 @@ cd personal-growth-os
 Install the required dependencies:
 
 ```bash
-npm install firebase react-router-dom tailwindcss framer-motion @craco/craco
-npm install -D postcss autoprefixer
+npm install firebase react-router-dom @craco/craco
+npm install -D tailwindcss@latest postcss@latest autoprefixer@latest
 npm install workbox-webpack-plugin workbox-core workbox-routing workbox-strategies workbox-precaching
 ```
 
@@ -130,15 +130,16 @@ Update the scripts in `package.json`:
 
 ### 7. Set Up Tailwind CSS
 
-Initialize Tailwind:
+Initialize Tailwind (this creates both tailwind.config.js and postcss.config.js):
 
 ```bash
 npx tailwindcss init -p
 ```
 
-Update the `tailwind.config.js` file with the content path:
+Update the `tailwind.config.js` file:
 
 ```javascript
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",

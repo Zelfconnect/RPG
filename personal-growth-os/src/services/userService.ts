@@ -1,6 +1,6 @@
 import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { User } from 'firebase/auth';
-import { db, usersCollection } from './firebase';
+import { usersCollection } from './firebase';
 import { UserProfile, calculateLevelFromXP, calculateXPForLevel } from '../types/user';
 
 /**

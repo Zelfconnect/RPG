@@ -25,7 +25,7 @@
 - **Progressive Enhancement**: Core functionality works everywhere, advanced features on capable devices
 
 ### UI Component Libraries
-- **Tailwind CSS**: For styling, we'll use Tailwind CSS which provides utility classes that make it easy to create consistent, responsive designs without writing custom CSS. This is beginner-friendly while still allowing for sophisticated UI.
+- **Tailwind CSS v3**: For styling, we'll use Tailwind CSS v3 which provides utility classes that make it easy to create consistent, responsive designs without writing custom CSS. This is beginner-friendly while still allowing for sophisticated UI.
 - **Heroicons**: Simple, attractive icon set that integrates well with Tailwind
 - **React Router**: For handling navigation between different screens
 - **Framer Motion**: For animations and transitions (simplified usage for beginners)

@@ -58,9 +58,9 @@ DashboardPage.jsx    // Page
 
 ## Styling Methodology
 
-### CSS Approach: Tailwind CSS
+### CSS Approach: Tailwind CSS v3
 
-We'll use Tailwind CSS as our primary styling approach because it's beginner-friendly while allowing for sophisticated designs:
+We'll use Tailwind CSS v3 as our primary styling approach because it's beginner-friendly while allowing for sophisticated designs:
 
 ```jsx
 // Example of a styled button using Tailwind
@@ -80,12 +80,14 @@ function PrimaryButton({ children, onClick }) {
 
 ### Theme Management
 
-We'll implement a simple theme system using Tailwind's configuration:
+We'll implement a simple theme system using Tailwind v3's configuration:
 
 1. **Custom Colors**: Define our color palette in tailwind.config.js
    ```js
    // tailwind.config.js
+   /** @type {import('tailwindcss').Config} */
    module.exports = {
+     content: ['./src/**/*.{js,jsx,ts,tsx}'],
      theme: {
        extend: {
          colors: {

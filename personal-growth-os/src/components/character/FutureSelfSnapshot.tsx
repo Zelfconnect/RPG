@@ -137,22 +137,20 @@ const FutureSelfSnapshot: React.FC<FutureSelfSnapshotProps> = ({
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-primary mb-4">
-        Your Future Self
+        Envision Your Future Self
       </h2>
       
       <p className="text-gray-600 mb-6">
-        Take a moment to visualize yourself three years from now at your best. 
-        What does your ideal future look like?
+        Now, let's imagine your ideal future. What would your life look like if everything went well?
       </p>
       
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Future Self Vision */}
         <div className="space-y-3">
           <label 
             htmlFor="description" 
             className="block text-gray-700 font-medium mb-1"
           >
-            Describe your future self in 3 years
+            How do you see yourself in the future?
           </label>
           <textarea
             id="description"
@@ -161,41 +159,35 @@ const FutureSelfSnapshot: React.FC<FutureSelfSnapshotProps> = ({
             onChange={handleInputChange}
             rows={5}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-            placeholder="I see myself as someone who..."
+            placeholder="Share your vision of your ideal future self..."
           ></textarea>
           {errors.description && (
-            <p className="text-red-500 text-xs">{errors.description}</p>
+            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            Consider areas such as health, relationships, career, skills, and personal growth.
-          </p>
         </div>
         
-        {/* Key Habits */}
         <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="block text-gray-700 font-medium">
-              Key habits of your future self
-            </label>
-          </div>
+          <label className="block text-gray-700 font-medium mb-1">
+            What key habits will help you get there?
+          </label>
           
           <div className="space-y-2">
             {Array.isArray(futureVision.keyHabits) && futureVision.keyHabits.map((habit, index) => (
               <div key={`habit-${index}`} className="flex items-center gap-2">
-                <span className="text-gray-500 font-medium min-w-[20px]">{index + 1}.</span>
                 <input
                   type="text"
-                  name={`keyHabit-${index}`}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   value={habit || ''}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder={`Habit ${index + 1}`}
+                  placeholder="e.g., Daily exercise, Regular study, Consistent practice..."
                 />
+                
                 {Array.isArray(futureVision.keyHabits) && futureVision.keyHabits.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => removeHabitField(index)}
                     className="p-2 text-red-500 hover:text-red-700 rounded-md hover:bg-red-50"
+                    onClick={() => removeHabitField(index)}
+                    aria-label="Remove habit"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -210,9 +202,9 @@ const FutureSelfSnapshot: React.FC<FutureSelfSnapshotProps> = ({
             <button
               type="button"
               onClick={addHabitField}
-              className="inline-flex items-center px-4 py-2 mt-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="inline-flex items-center px-4 py-2 mt-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-primary bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
               Add Another Habit
@@ -220,7 +212,7 @@ const FutureSelfSnapshot: React.FC<FutureSelfSnapshotProps> = ({
           )}
           
           {errors.keyHabits && (
-            <p className="text-red-500 text-xs">{errors.keyHabits[0]}</p>
+            <p className="text-red-500 text-sm mt-1">{errors.keyHabits}</p>
           )}
           
           <p className="text-xs text-gray-500">
@@ -228,13 +220,12 @@ const FutureSelfSnapshot: React.FC<FutureSelfSnapshotProps> = ({
           </p>
         </div>
         
-        {/* Major Goal */}
         <div className="space-y-3">
           <label 
             htmlFor="majorGoal" 
             className="block text-gray-700 font-medium mb-1"
           >
-            One major achievement you've accomplished
+            What's your most important goal?
           </label>
           <input
             type="text"
@@ -243,38 +234,37 @@ const FutureSelfSnapshot: React.FC<FutureSelfSnapshotProps> = ({
             value={futureVision.majorGoal || ''}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder="I've achieved..."
+            placeholder="e.g., Run a marathon, Start a business, Master a language..."
           />
           {errors.majorGoal && (
-            <p className="text-red-500 text-xs">{errors.majorGoal}</p>
+            <p className="text-red-500 text-sm mt-1">{errors.majorGoal}</p>
           )}
           <p className="text-xs text-gray-500">
             What's one significant goal you've achieved in this future vision?
           </p>
         </div>
         
-        {/* Time estimate */}
         <div className="rounded-lg bg-primary-light/10 p-4 text-center">
           <span className="text-sm text-primary-dark">
-            Time investment: 5-7 minutes
+            This vision represents about a 3-year growth journey
           </span>
         </div>
         
-        {/* Navigation buttons */}
-        <div className="flex justify-end pt-6">
+        <div className="flex justify-between pt-6">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="mr-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 font-medium"
             >
               Back
             </button>
           )}
+          
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary-light transition-colors disabled:opacity-50"
+            className="px-6 py-2.5 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary font-medium shadow-sm transition-colors disabled:opacity-50"
           >
             {isSubmitting ? 'Saving...' : 'Continue'}
           </button>
